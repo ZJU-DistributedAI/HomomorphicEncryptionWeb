@@ -49,6 +49,9 @@ exports.generate_random_matrix_float=function(row,col,bound){
     return nj.random([row,col]).add(-0.5).multiply(2 * bound)
 }
 
+exports.generate_random_vector = function(len,bound){
+    return this.asIntType(nj.random(len).add(-0.5).multiply(2 * bound))
+}
 
 exports.get_eye = function(len){
     var i,j
