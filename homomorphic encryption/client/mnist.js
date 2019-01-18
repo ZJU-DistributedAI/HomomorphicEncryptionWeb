@@ -41,7 +41,6 @@ var testSet = set.training
 var _w,_b
 
 var input = trainingSet[0].input
-// console.log(input)
 
 function init_data(){
     _w = mh.generate_random_matrix_float(n_in,n_h,1)
@@ -57,25 +56,29 @@ var model = [
 ]
 
 
-function perform_simple_training(layers, batch_xs, settings){
-    var learning_rate = settings['simple_training_params']['learning_rate']
-    var activations = forward_step(batch_xs, layers)
-    backward_stepf(activations, batch_ys, layers, learning_rate)
-}
+// function perform_simple_training(layers, batch_xs, settings){
+//     var learning_rate = settings['simple_training_params']['learning_rate']
+//     var activations = forward_step(batch_xs, layers)
+//     backward_stepf(activations, batch_ys, layers, learning_rate)
+// }
 
 // # The normal forward step that might use homomorphic encryption
 function forward_step(input_samples, layers){
-    var activations = new Array()
+    var i,activations = new Array()
     activations.push(nj.array(input_samples))
-    for(var layer in layers){
-        activations.push(layer.forward(activations[activations.length - 1]))
+    for(i = 0;i < layers.length;i ++){
+        activations.push(layers[i].forward(activations[activations.length - 1]))
     }
     return activations
 }   
 
 var test_input = nj.array(input)
-var out = LinearLayer.forward(test_input)
-console.log(out,out.shape)
+var res = forward_step(test_input,model)
+console.log(res)
+
+// var out = LinearLayer.forward(test_input)
+// var res = forward_step(test_input,model)
+// console.log(res)
 
 //todo
 // function backward_step(activations, targets, layers, learning_rate){

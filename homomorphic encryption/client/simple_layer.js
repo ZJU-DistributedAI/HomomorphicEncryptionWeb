@@ -1,4 +1,5 @@
 var nj=require('numjs')
+var check = require('./type_check_js.js')
 
 exports.LinearLayer = class{
     constructor(w,b){
@@ -7,7 +8,6 @@ exports.LinearLayer = class{
     }
 
     forward(x){
-        console.log("w:",nj.sum(this.w))
         return x.dot(this.w).add(this.b) 
     }
     
@@ -24,17 +24,11 @@ exports.LinearLayer = class{
 
 exports.ReluLayer = class{
     forward(m){
-        if(!check.check_is_matrix(m)){
-            throw new Error("m is not a matrix")
+        var len = m.shape[0],tmp,res = []
+        for(var i = 0;i < len; i ++){
+            res.push(Math.max(m.get(i),0))
         }
-        var row = m.shape[0], col = m.shape[1],tmp
-        for(var i = 0;i < row; i ++){
-            for(var j = 0;j < col;j ++){
-                tmp = Math.max(m.get(i,j),0)
-                m.set(i,j,tmp)
-            }
-        }
-        return m
+        return nj.array(res)
     }
     
 }        
