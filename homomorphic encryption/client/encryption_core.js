@@ -1,5 +1,5 @@
 
-const  _number_of_bits = 4
+const  _number_of_bits = 40
 var mh = require('./math_helper.js')
 var nj = require('numjs')
 var check = require('./type_check_js.js')
@@ -160,7 +160,7 @@ exports.key_switching_get_cipher_from_switching_matrix = function(c,m){
     var c_star = this.compute_c_star(c)
     var result = this.compute_new_c(m,c_star)
     var largest_element = nj.abs(result).max()
-    if (largest_element > self.largest_integer_after_encryption){
+    if (largest_element > this.largest_integer_after_encryption){
         _largest_integer_after_encryption = largest_element
     }
     return result
@@ -177,10 +177,10 @@ exports.key_switching_get_cipher = function(c, s, t){
 
 //haven't test
 exports.decrypt = function(s, c, w){
-    if(check.check_is_matrix(s)){
+    if(!check.check_is_matrix(s)){
         throw new Error("s is not a matrix")
     }
-    return mh.round(nj.dot(s,c).reshape(-1,s.shape[0]) / w )
+    return mh.round(nj.dot(s,c).divide(w))
 
 }
 

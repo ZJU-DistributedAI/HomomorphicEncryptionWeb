@@ -12,7 +12,6 @@ exports.check_is_vector=function(vector){
 }
 
 exports.check_is_matrix=function(array){
-
     if(array instanceof nj.NdArray && array.shape.length==2){
         return true
     }else{

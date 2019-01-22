@@ -1,2 +1,3 @@
-/homomorphic encryption/client/node_modules
+/homomorphic encryption/client/node_modules/
+/homomorphic encryption/server/EIVHE/MNIST_data/
 /homomorphic encryption/server/.idea/

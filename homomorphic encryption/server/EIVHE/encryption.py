@@ -11,54 +11,14 @@ class Encryption:
         self.scale = np.int64(scale)
         self.t_bound = t_bound
         self.input_range = input_range
-        self.t_cache = self.load_t_cache()
-        self.s_cache = self.load_s_cache()
 
-    # Note that here, t is always with 1 row. hence I is always 1 for S' = [I, T].
-    # Cipher is always one dimension higher than plain text
-    def load_t_cache(self):
-        t_cache = [generate_random_matrix(x, 1, self.t_bound) for x in range(self.w)]
-        return t_cache
-
-    # Secret is always of the size (plaintext + 1)
-    def load_s_cache(self):
-        s_cache = [self.encryption_core.key_switching_get_secret(t) for t in self.t_cache]
-        return s_cache
-
-    def get_t(self, size):
-        if size >= self.input_range:
-            raise ValueError("size {} exceeded input range {}".format(size, self.input_range))
-        else:
-            return self.t_cache[size]
-
-    def get_s(self, size):
-        if size >= self.input_range:
-            raise ValueError("size {} exceeded input range {}".format(size, self.input_range))
-        else:
-            return self.s_cache[size]
-
-    def encrypt_vector(self, vector):
-        vector = np.multiply(np.array(vector), self.scale).round().astype(np.int64)
-        s0 = self.encryption_core.naive_encrypt_secret(self.w, vector.size)
-        c0 = vector
-        t1 = self.get_t(vector.size)
-        c1 = self.encryption_core.key_switching_get_cipher(c0, s0, t1)
-        return c1
+    def encrypt_vector(self, vector,m):
+        return self.encryption_core.key_switching_get_cipher_from_switching_matrix(vector,m)
 
     def decrypt_vector(self, cipher):
         secret = self.get_s(len(cipher) - 1)
         result = self.encryption_core.decrypt(secret, cipher, self.w)
         return np.array(result / np.float64(self.scale))
-
-    # Do not need to scale because it is calling encrypt vector
-    def encrypt_number(self, number):
-        x = np.array([number])
-        cipher = self.encrypt_vector(x)
-        return cipher
-
-    def decrypt_number(self, cipher):
-        result = self.encryption_core.decrypt(self.get_s(1), cipher, self.w)
-        return result / np.float64(self.scale)
 
     # Encode each row of the matrix
     def encrypt_matrix(self, matrix):
@@ -71,10 +31,6 @@ class Encryption:
             for x in matrix
         ])
         return encrypted_matrix
-
-    def decrypt_matrix(self, cipher):
-        result = self.encryption_core.decrypt(self.get_s(cipher.shape[1] - 1), cipher, self.w)
-        return np.matrix(result / np.float64(self.scale))
 
     @staticmethod
     def add(cipher1, cipher2):

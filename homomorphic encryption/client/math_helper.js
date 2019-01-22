@@ -1,5 +1,3 @@
-const _number_of_bits = 2
-
 var nj = require('numjs')
 var type_check = require('./type_check_js.js')
 
@@ -127,8 +125,8 @@ exports.vector_to_matrix = function(vector,row,col){
     return vector.reshape(row,col)
 }
 
-var a = nj.array([[1,2,3],[2,3,-4.6]])
-var b = nj.array([[2,3],[1,2],[0,1]])
-var c = nj.array([1,5,4,2])
+// var a = nj.array([[1,2,3],[2,3,-4.6]])
+// var b = nj.array([[2,3],[1,2],[0,1]])
+// var c = nj.array([1,5,4,2])
 
 // console.log(this.matrix_to_vector(a))

@@ -1,9 +1,11 @@
-var mnist = require('mnist'); 
+var mnist = require('mnist');
 var nj = require('numjs')
 var simple_layer = require('./simple_layer')
 var mh = require('./math_helper.js')
+var en = require('./encryption.js')
+var request=require('request');
 
-var n_in = 784,n_h = 32
+var n_in = 784, n_h = 32
 
 settings = {
     // # Training method is either 'simple' or 'genetic_algorithm'
@@ -13,13 +15,6 @@ settings = {
     // # Parameters used for normal training process
     'simple_training_params': {
         'learning_rate': 0.01
-    },
-    // # Parameters used for genetic algorithm
-    'genetic_algorithm_params': {
-        'population': 5,
-        'parents': 1,
-        'sigma': 0.02,
-        'mutation_probability': 0.00001
     },
     // # Homomorphic encryption related settings
     'homomorphic_encryption_params': {
@@ -38,18 +33,18 @@ settings = {
 var set = mnist.set(30000)
 var trainingSet = set.test
 var testSet = set.training
-var _w,_b
+var _w, _b
 
 var input = trainingSet[0].input
 
-function init_data(){
-    _w = mh.generate_random_matrix_float(n_in,n_h,1)
-    _b = mh.generate_random_vector(n_h,1)
-}   
+function init_data() {
+    _w = mh.generate_random_matrix_float(n_in, n_h, 1)
+    _b = mh.generate_random_vector(n_h, 1)
+}
 
 init_data()
-var LinearLayer =  new simple_layer.LinearLayer(_w,_b)
-var ReluLayer =  new simple_layer.ReluLayer()
+var LinearLayer = new simple_layer.LinearLayer(_w, _b)
+var ReluLayer = new simple_layer.ReluLayer()
 var model = [
     LinearLayer,
     ReluLayer
@@ -63,30 +58,39 @@ var model = [
 // }
 
 // # The normal forward step that might use homomorphic encryption
-function forward_step(input_samples, layers){
-    var i,activations = new Array()
+function forward_step(input_samples, layers) {
+    var i, activations = new Array()
     activations.push(nj.array(input_samples))
-    for(i = 0;i < layers.length;i ++){
+    for (i = 0; i < layers.length; i++) {
         activations.push(layers[i].forward(activations[activations.length - 1]))
     }
     return activations
-}   
+}
 
+//train the model and encrypt the result
+var enc_settings = settings['homomorphic_encryption_params']
+var encryption = new en.Encryption(enc_settings['w'], enc_settings['scale'], enc_settings['t_bound'],
+    enc_settings['input_range'])
 var test_input = nj.array(input)
-var res = forward_step(test_input,model)
-console.log(res)
+var activations = forward_step(test_input, model)//res is the output of front layers
+var res = encryption.encrypt_vector(activations[2]).tolist()
 
-// var out = LinearLayer.forward(test_input)
-// var res = forward_step(test_input,model)
-// console.log(res)
+//send result to server
+var options = {
+	headers: {"Connection": "close"},
+    url: 'http://127.0.0.1:5000/json',
+    method: 'POST',
+    json:true,
+    body: {output:res,M:encryption.m.tolist()}
+};
 
-//todo
-// function backward_step(activations, targets, layers, learning_rate){
-//     parameter = targets
-//     for(index, layer in enumerate(reversed(layers))){
+function callback(error, response, data) {
+    if (!error && response.statusCode == 200) {
+        console.log('----info------',data);
+    }
+    else{
+        console.log(response)
+    }
+}
 
-//     }
-//     y = activations.pop()
-//     x = activations[-1]
-//     parameter = layer.backward(learning_rate, y, x, parameter)
-// }
+request(options, callback);
