@@ -6,7 +6,6 @@ var en = require('./encryption.js')
 var request=require('request');
 
 var n_in = 784, n_h = 32
-
 settings = {
     // # Training method is either 'simple' or 'genetic_algorithm'
     'training_method': 'genetic_algorithm',
@@ -33,22 +32,8 @@ settings = {
 var set = mnist.set(30000)
 var trainingSet = set.test
 var testSet = set.training
-var _w, _b
-
-var input = trainingSet[0].input
-
-function init_data() {
-    _w = mh.generate_random_matrix_float(n_in, n_h, 1)
-    _b = mh.generate_random_vector(n_h, 1)
-}
-
-init_data()
-var LinearLayer = new simple_layer.LinearLayer(_w, _b)
-var ReluLayer = new simple_layer.ReluLayer()
-var model = [
-    LinearLayer,
-    ReluLayer
-]
+var input = trainingSet[1].input
+console.log("label:",trainingSet[1].output)
 
 
 // function perform_simple_training(layers, batch_xs, settings){
@@ -67,30 +52,64 @@ function forward_step(input_samples, layers) {
     return activations
 }
 
-//train the model and encrypt the result
-var enc_settings = settings['homomorphic_encryption_params']
-var encryption = new en.Encryption(enc_settings['w'], enc_settings['scale'], enc_settings['t_bound'],
-    enc_settings['input_range'])
-var test_input = nj.array(input)
-var activations = forward_step(test_input, model)//res is the output of front layers
-var res = encryption.encrypt_vector(activations[2]).tolist()
-
-//send result to server
-var options = {
+var options_askData = {
 	headers: {"Connection": "close"},
-    url: 'http://127.0.0.1:5000/json',
+    url: 'http://127.0.0.1:5000/askData',
     method: 'POST',
-    json:true,
-    body: {output:res,M:encryption.m.tolist()}
+    body: {empty:""},
+    json:true
 };
 
-function callback(error, response, data) {
+function callback_askData(error, response, data) {
     if (!error && response.statusCode == 200) {
-        console.log('----info------',data);
+        // console.log('----info------',data);
+    
+        var w1 = data["W1"],b1 = data["b1"]
+        w1 = nj.array(w1)
+        b1 = nj.array(b1).reshape(32)
+        var LinearLayer = new simple_layer.LinearLayer(w1, b1)
+        var ReluLayer = new simple_layer.ReluLayer()
+        var model = [
+            LinearLayer,
+            ReluLayer
+        ]
+        
+        //train the model and encrypt the result
+        var enc_settings = settings['homomorphic_encryption_params']
+        var encryption = new en.Encryption(enc_settings['w'], enc_settings['scale'], enc_settings['t_bound'],
+            enc_settings['input_range'])
+        var test_input = nj.array(input)
+        console.log("input",test_input,test_input.shape)
+        console.log("w1",nj.array(w1).shape)
+        console.log("b1",nj.array(b1).shape)
+        var activations = forward_step(test_input, model)//res is the output of front layers
+        // var res = encryption.encrypt_vector(activations[2]).tolist()
+        send_res(activations[2],encryption)
     }
     else{
         console.log(response)
     }
+    return
 }
+request(options_askData, callback_askData)
 
-request(options, callback);
+// send result to server
+function send_res(res,encryption){
+    var options_sendRes = {
+        headers: {"Connection": "close"},
+        url: 'http://127.0.0.1:5000/inference',
+        method: 'POST',
+        json:true,
+        body: {output:res.tolist(),M:encryption.m.tolist()}
+    };
+
+    function callback_sendRes(error, response, data) {
+        if (!error && response.statusCode == 200) {
+            // console.log('----info------',data);
+        }
+        else{
+            console.log(response)
+        }
+    }
+    request(options_sendRes, callback_sendRes);
+}

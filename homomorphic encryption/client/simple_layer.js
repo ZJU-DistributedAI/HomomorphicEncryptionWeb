@@ -3,8 +3,8 @@ var check = require('./type_check_js.js')
 
 exports.LinearLayer = class{
     constructor(w,b){
-        this.w = w
-        this.b = b
+        this.w = nj.array(w)
+        this.b = nj.array(b)
     }
 
     forward(x){

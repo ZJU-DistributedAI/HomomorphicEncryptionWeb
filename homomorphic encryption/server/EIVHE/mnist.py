@@ -15,23 +15,41 @@ import random
 
 app = Flask(__name__)
 
+#ask data
+@app.route('/askData', methods=['GET', 'POST'])
+def ask_data():
+    if request.method == 'POST':
+        W1 = load_parameters["W1"]
+        b1 = load_parameters["b1"]
+        return json.dumps({"W1":W1,"b1":b1})
+    else:
+        return '<h1>only accept post request！</h1>'
 
-@app.route('/json', methods=['GET', 'POST'])
-def index():
+#inference
+@app.route('/inference', methods=['GET', 'POST'])
+def inference():
     if request.method == 'POST':
         data = request.get_data()
         dict = json.loads(data)
         train((dict["output"]))
-        print("M:", dict["M"])
+        M = dict["M"]
+        M = np.array(M)
         return json.dumps(dict)
     else:
-        return '<h1>只接受post请求！</h1>'
+        return '<h1>only accept post request！</h1>'
 
+
+def parameters2Numpy(parameters):
+    parameters["W1"] = np.array(parameters["W1"])
+    parameters["b1"] = np.array(parameters["b1"])
+    parameters["W2"] = np.array(parameters["W2"])
+    parameters["b2"] = np.array(parameters["b2"])
+    return parameters
 
 def train(input):
     settings = {
         # Training method is either 'simple' or 'genetic_algorithm'
-        'training_method': 'genetic_algorithm',
+        'training_method': 'simple',
         'num_of_batches': 1000,
         'batch_size': 10,
         # Parameters used for normal training process
@@ -71,30 +89,32 @@ def train(input):
     encryption_core = EncryptionCore(enc_settings['number_of_bits'], enc_settings['a_bound'], enc_settings['e_bound'])
     encryption = Encryption(encryption_core, enc_settings['w'], enc_settings['scale'], enc_settings['t_bound'],
                             enc_settings['input_range'])
+
     # Finished configuring encryption instance
 
     # Train.
     i, train_accuracy, test_accuracy = 0, [], []
 
     model = [
-        # LinearLayer(32, 10),
-        # SoftmaxOutputLayer()
-        HomomorphicEncryptionLayer(encryption),
-        SafeLinearLayer(encryption, 32, 10),
-        SafeSoftmaxOutputLayer(encryption),
-        HomomorphicDecryptionLayer(encryption)
+        LinearLayer(load_parameters["W2"], load_parameters["b2"]),
+        SoftmaxOutputLayer()
+        # SafeLinearLayer(encryption, 32, 10),
+        # SafeSoftmaxOutputLayer(encryption),
     ]
 
-    print(np.array(input))
+    print("input",input)
+    print(type(input))
+    activations = forward_step(input,model)
+    print("activations",activations[2],np.argmax(activations[2]))
 
-    # while i < settings['num_of_batches']:
+    # while i < input.length():
     #     # Update.
     #     i += 1
     #     # Training steps
     #     batch_xs, batch_ys = data_set.train.next_batch(settings['batch_size'])
     #     if settings['training_method'] == 'simple':
     #         perform_simple_training(model, batch_xs, batch_ys, settings)
-    #
+    # #
     #     # Evaluate
     #     train_accuracy_value = calculate_accuracy(model, eval_train_images, eval_train_labels)
     #     train_accuracy.append(train_accuracy_value)
@@ -103,6 +123,10 @@ def train(input):
 
     # print(i, train_accuracy_value, test_accuracy_value)
 
+with open("./parameters.json", 'r') as load_f:
+    load_parameters = json.load(load_f)
+
 
 if __name__ == '__main__':
+    # train(5)
     app.run(debug=True)

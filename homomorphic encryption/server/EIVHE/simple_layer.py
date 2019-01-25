@@ -5,14 +5,17 @@ from EIVHE.safe_nn.layer import Layer
 
 
 class LinearLayer(Layer):
-    def __init__(self, n_in, n_out):
-        self.w = Layer.xavier_activation((n_in, n_out))
-        self.b = Layer.xavier_activation((n_out,))
+    def __init__(self, w, b):
+        self.w = np.array(w)
+        self.b = np.array(b)
 
     def simple_forward(self, x):
         return self.forward(x)
 
     def forward(self, x):
+        x = np.array(x)
+        print("W",self.w.shape,type(self.w))
+        print("x",x.shape)
         return x.dot(self.w) + self.b
 
     # http://cs231n.stanford.edu/handouts/linear-backprop.pdf
