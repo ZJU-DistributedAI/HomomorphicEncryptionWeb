@@ -1,5 +1,7 @@
 # Import useful libraries.
 import os
+import sys
+sys.path.append("../")
 from EIVHE.encryption import Encryption
 from EIVHE.encryption_core import EncryptionCore
 from EIVHE.safe_nn.layer import *

@@ -5,6 +5,16 @@ var mh = require('./math_helper.js')
 var en = require('./encryption.js')
 var request=require('request');
 
+var express = require("express");
+var app = express();
+
+app.use("/shared", express.static('shared'));
+
+app.get("/", function(req, res){    
+    res.sendFile(__dirname+"/"+"index.html");
+})
+
+
 var n_in = 784, n_h = 32
 settings = {
     // # Training method is either 'simple' or 'genetic_algorithm'
@@ -27,13 +37,41 @@ settings = {
     }
 }
 
+// 1. init model
+var input
+app.get("/initModel", function(req, res){
+    console.log("init model");
+    var set = mnist.set(30000)
+    var trainingSet = set.test
+    var testSet = set.training
+    input = trainingSet[1].input
+    
+    console.log("label:",trainingSet[1].output)
+
+    // 输出 json 格式
+    var response = {
+        "label": input
+    };
+    // console.log(response);
+    res.send(JSON.stringify(response)); // send
+})
+
+// 2. Generate homomorphic encryption key
+app.get("/generatedKey", function(req, res){
+    console.log("Generate homomorphic encryption key success");
+})
+
+// 3. Put homomorphic encryption key
+app.get("/sendKey", function(req, res){
+    console.log("Put homomorphic encryption key success");
+})
+
+// 4. GET MODEL FROM SERVER
+app.get("/getModel", function(req, res){
+    console.log("GET MODEL FROM SERVER success");
+})
 
 
-var set = mnist.set(30000)
-var trainingSet = set.test
-var testSet = set.training
-var input = trainingSet[1].input
-console.log("label:",trainingSet[1].output)
 
 
 // function perform_simple_training(layers, batch_xs, settings){
@@ -98,7 +136,11 @@ function callback_askData(error, response, data) {
     return
 }
 
-request(options_askData, callback_askData)
+// 5. TRAIN
+app.get("/train", function(req, res){
+    request(options_askData, callback_askData)
+    console.log("TRAIN success");
+})
 
 // send result to server
 function send_res(res,encryption){
@@ -120,3 +162,10 @@ function send_res(res,encryption){
     }
     request(options_sendRes, callback_sendRes);
 }
+
+
+var server = app.listen(8081, function(){
+    var host = server.address().address;
+    var port = server.address().port;
+    console.log("应用 实例，访问地址为 http://%s:%s", host, port);
+})

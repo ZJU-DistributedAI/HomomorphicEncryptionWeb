@@ -18,10 +18,11 @@ limitations under the License.
 <html>
 
 <head>
-  <title>MNIST in TensorFlow.js Layers API</title>
+  <title>Partially Encrypted Deep Neural Network for Enhancing Privacy</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="../shared/tfjs-examples.css" type="text/css" />
+  <link rel="stylesheet" href="./shared/tfjs-examples.css" type="text/css" />
+  <script src="./shared/jquery-3.4.0.min.js"></script>
 
   <style>
     #train {
@@ -67,17 +68,18 @@ limitations under the License.
 <body>
   <div class="tfjs-example-container">
     <section class='title-area'>
-      <h1>TensorFlow.js: Digit Recognizer with Layers</h1>
-      <p class='subtitle'>Train a model to recognize handwritten digits from the MNIST database using the tf.layers
-        api.
+      <h1>Partially Encrypted Deep Neural Network for Enhancing Privacy</h1>
+      <p class='subtitle'>Train a model with encrpted model layer
       </p>
     </section>
 
     <section>
       <p class='section-head'>Description</p>
       <p>
-        This examples lets you train a handwritten digit recognizer using either a Convolutional Neural Network
-        (also known as a ConvNet or CNN) or a Fully Connected Neural Network (also known as a DenseNet).
+        This examples we propose a deep neural network system that aims to solve privacy 
+        issue for both the data owner (protecting both the original data and predicted result) 
+        and model owner. Our system is partially encrypted, which significantly reduces computation 
+        and communication costs comparing to encrypting the entire model.
       </p>
       <p>The MNIST dataset is used as training data.</p>
     </section>
@@ -86,7 +88,7 @@ limitations under the License.
     <section>
         <p class='section-head'>Init Model</p>
   
-        <button id="init_model">Init Model</button>
+        <button id="init_model" onclick="loginInit()">Init Model</button>
   
       </section>
       <section>
@@ -105,7 +107,7 @@ limitations under the License.
         This examples to generate homomorphic encryption key
       </p>
 
-      <button id="generate_key">Generate homomorphic encryption key</button>
+      <button id="generate_key" onclick="generateKey()">Generate homomorphic encryption key</button>
 
     </section>
 
@@ -124,7 +126,7 @@ limitations under the License.
         This examples to put public homomorphic encryption key to server
       </p>
 
-      <button id="put_key">Put homomorphic encryption key</button>
+      <button id="put_key" onclick="putKey()">Put homomorphic encryption key</button>
 
     </section>
 
@@ -137,7 +139,7 @@ limitations under the License.
     <section>
         <p class='section-head'>Get Model From Server</p>
   
-        <button id="get_model">Get Model From Server</button>
+        <button id="get_model" onclick="getModel()">Get Model From Server</button>
   
       </section>
       <section>
@@ -147,7 +149,7 @@ limitations under the License.
       <section>
           <p class='section-head'>Train</p>
     
-          <button id="train_model">Train</button>
+          <button id="train_model" onclick="trainModel()">Train</button>
     
         </section>
         <section>
@@ -155,10 +157,10 @@ limitations under the License.
         </section>
 
 
-        <section>
+        <!-- <section>
             <p class='section-head'>Check Current Model</p>
       
-            <button id="check_current_model">Check Current Model</button>
+            <button id="check_current_model" onclick="trainModel()">Check Current Model</button>
       
           </section>
           <section>
@@ -166,24 +168,17 @@ limitations under the License.
               <p id="check_current_w2_result"></p>
               <p id="check_current_b1_result"></p>
               <p id="check_current_b2_result"></p>
-            </section>
+            </section> -->
 
-    <section>
+    <!-- <section>
         <p class='section-head'>Priedict Result</p>
   
-        <button id="predict_result">Predict Result</button>
+        <button id="predict_result" onclick="predictResult()" >Predict Result</button>
   
       </section>
       <section>
           <p id="show_preidct_result"></p>
-      </section>
-
-     
-      
-
-
-    
-
+      </section> -->
 
     <section>
       <p class='section-head'>Training Parameters</p>
@@ -200,10 +195,10 @@ limitations under the License.
         <input id="train-epochs" value="3">
       </div>
 
-      <button id="train">Load Data and Train Model</button>
+      <button id="train" onclick="trainModel()">Load Data and Train Model</button>
     </section>
 
-    <section>
+    <!-- <section>
       <p class='section-head'>Training Progress</p>
       <p id="status"></p>
       <p id="message"></p>
@@ -218,12 +213,12 @@ limitations under the License.
           <div id="accuracy-canvas"></div>
         </div>
       </div>
-    </section>
+    </section> -->
 
-    <section>
+    <!-- <section>
       <p class='section-head'>Inference Examples</p>
       <div id="images"></div>
-    </section>
+    </section> -->
 
 
   </div>
@@ -231,8 +226,88 @@ limitations under the License.
   <!-- TODO(cais): Decide. DO NOT SUBMIT. -->
   <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
   <!-- <script src="index.js"></script> -->
-  <script type="javascript">
-    
+  <script type="text/javascript">
+        
+    const Url = "http://127.0.0.1:8081/";
+    function loginInit() {
+      // alert(loginInit);
+      $.ajax({
+        url: Url+"initModel",
+        type: "GET",
+        success: function(data) {
+          alert(result);
+          console.log("result:", result);
+        },
+        error: function(error) {
+          alert("error:",error);
+          console.log(`Error ${error}`)
+        }
+      });
+    }
+    function generateKey() {
+      $.ajax({
+        url: Url+"generateKey",
+        type: "GET",
+        success: function(data) {
+          console.log(result);
+        },
+        error: function(error) {
+          console.log(`Error ${error}`)
+        }
+      });
+    }
+    function putKey() {
+      $.ajax({
+        url: Url+"sendKey",
+        type: "GET",
+        success: function(data) {
+          console.log(result);
+        },
+        error: function(error) {
+          console.log(`Error ${error}`)
+        }
+      });
+    }
+    function getModel() {
+      $.ajax({
+        url: Url+"getModel",
+        type: "GET",
+        success: function(data) {
+          console.log(result);
+        },
+        error: function(error) {
+          console.log(`Error ${error}`)
+        }
+      });
+    }
+    function trainModel() {
+      $.ajax({
+        url: Url+"train",
+        type: "GET",
+        success: function(data) {
+          console.log(result);
+        },
+        error: function(error) {
+          console.log(`Error ${error}`)
+        }
+      });
+    }
+      // var generate_key = document.getElementById("generate_key");
+      // generate_key.onclick=function(){
+      //   alert("hello world generate_key");
+      // }
+      // var put_key = document.getElementById("put_key");
+      // put_key.onclick=function(){
+      //   alert("hello world put_key");
+      // }
+      // var get_model = document.getElementById("get_model");
+      // get_model.onclick=function(){
+      //   alert("hello world get_model");
+      // }
+      // var train_model = document.getElementById("train_model");
+      // train_model.onclick=function(){
+      //   alert("hello world train_model");
+      // }
 
   </script>
 </body>

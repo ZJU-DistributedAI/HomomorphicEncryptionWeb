@@ -1,3 +1,8 @@
 /homomorphic encryption/client/node_modules/
 /homomorphic encryption/server/EIVHE/MNIST_data/
 /homomorphic encryption/server/.idea/
+.DS_Store
+homomorphic encryption/.idea
+homomorphic encryption/node_modules
+homomorphic encryption/server/EIVHE/__pycache__
+homomorphic encryption/server/EIVHE/safe_nn/__pycache__
